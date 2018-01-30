@@ -1,5 +1,7 @@
 package blogSystem.controller;
 
+import blogSystem.entity.Category;
+import blogSystem.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -16,16 +18,25 @@ import blogSystem.entity.User;
 import blogSystem.repository.ArticleRepository;
 import blogSystem.repository.UserRepository;
 
+import java.util.List;
+
 @Controller
 public class ArticleController {
     @Autowired
     private ArticleRepository articleRepository;
+
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @GetMapping("/article/create")
     @PreAuthorize("isAuthenticated()")
     public String create(Model model){
+        List<Category> categories=this.categoryRepository.findAll();
+
+        model.addAttribute("categories", categories);
         model.addAttribute("view", "article/create");
 
         return "base-layout";
@@ -38,11 +49,13 @@ public class ArticleController {
                 .getAuthentication().getPrincipal();
 
         User userEntity = this.userRepository.findByEmail(user.getUsername());
+        Category category=this.categoryRepository.findOne(articleBindingModel.getCategoryId());
 
         Article articleEntity = new Article(
                 articleBindingModel.getTitle(),
                 articleBindingModel.getContent(),
-                userEntity
+                userEntity,
+                category
         );
 
         this.articleRepository.saveAndFlush(articleEntity);
@@ -86,8 +99,11 @@ public class ArticleController {
             return "redirect:/article/" + id;
         }
 
+        List<Category> categories=this.categoryRepository.findAll();
+
         model.addAttribute("view", "article/edit");
         model.addAttribute("article", article);
+        model.addAttribute("categories", categories);
 
         return "base-layout";
     }
@@ -105,6 +121,9 @@ public class ArticleController {
             return "redirect:/article/" + id;
         }
 
+        Category category=this.categoryRepository.findOne(articleBindingModel.getCategoryId());
+
+        article.setCategory(category);
         article.setContent(articleBindingModel.getContent());
         article.setTitle(articleBindingModel.getTitle());
 

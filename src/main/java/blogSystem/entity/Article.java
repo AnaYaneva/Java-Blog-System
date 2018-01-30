@@ -13,12 +13,16 @@ public class Article {
 
     private User author;
 
-    public Article() {    }
+    private Category category;
 
-    public Article(String title, String content, User author) {
+    public Article() {
+    }
+
+    public Article(String title, String content, User author, Category category) {
         this.title = title;
         this.content = content;
         this.author = author;
+        this.category = category;
     }
 
     @Id
@@ -57,6 +61,16 @@ public class Article {
 
     public void setAuthor(User author) {
         this.author = author;
+    }
+
+    @ManyToOne()
+    @JoinColumn(nullable = false, name="categoryId")
+    public Category getCategory() {
+        return this.category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
     @Transient
